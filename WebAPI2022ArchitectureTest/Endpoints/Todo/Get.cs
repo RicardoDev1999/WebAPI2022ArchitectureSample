@@ -1,42 +1,34 @@
 ﻿using Ardalis.ApiEndpoints;
-using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using WebAPI2022ArchitectureTest.Business.Interfaces;
+using WebAPI2022ArchitectureTest.Application.Common.Models;
+using WebAPI2022ArchitectureTest.Application.TodoItems.Queries.Get;
 
 namespace WebAPI2022ArchitectureTest.Endpoints.Todo
 {
     [Route("api/todo")]
     public class Get : EndpointBaseAsync
-      .WithRequest<string>
-      .WithResult<GetResult>
+      .WithRequest<GetTodoItemQuery>
+      .WithResult<TodoItemDTO>
     {
-        private readonly ITodoService _todoServices;
-        private readonly IMapper _mapper;
-        private readonly IAppHashIdService _appHashIdService;
+        private ISender _mediator;
 
-        public Get(ITodoService todoServices, IMapper mapper, IAppHashIdService appHashIdService)
+        public Get(ISender mediator)
         {
-            _todoServices = todoServices;
-            _mapper = mapper;
-            _appHashIdService = appHashIdService;
+            _mediator = mediator;
         }
 
-        [HttpGet("get/{id}")]
+        [HttpGet("get")]
         [SwaggerOperation(
             Summary = "Get Todo Item by id",
             Description = "Get specific Todo Item",
             OperationId = "TodoItem.Get",
             Tags = new[] { "TodoEndpoints" })]
-        public override async Task<GetResult> HandleAsync(string id, CancellationToken cancellationToken = default)
-        {
-            var decodedId = _appHashIdService.Decode(id);
-            var result = await _todoServices.GetById(decodedId);
-
-            if (result.IsFailed)
-                throw new System.Web.Http.HttpResponseException(System.Net.HttpStatusCode.BadRequest);
-
-            return _mapper.Map<GetResult>(result.Value);
+        public override async Task<TodoItemDTO> HandleAsync([FromQuery]GetTodoItemQuery query, CancellationToken cancellationToken = default) 
+        { 
+            var result = await _mediator.Send(query, cancellationToken);
+            return result.Value;
         }
     }
 }

@@ -1,10 +1,9 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using MinimalApi.Endpoint.Extensions;
-using WebAPI2022ArchitectureTest.Business.Interfaces;
-using WebAPI2022ArchitectureTest.Business.Services;
-using WebAPI2022ArchitectureTest.Mappings;
+using WebAPI2022ArchitectureTest;
+using WebAPI2022ArchitectureTest.Application;
+using WebAPI2022ArchitectureTest.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,22 +26,16 @@ builder.Services.AddSwaggerGen(c =>
     c.EnableAnnotations();
 });
 
-builder.Services.AddAutoMapper(typeof(WebAPI2022ArchitectureTest.Mappings.AutoMappings).Assembly);
+// Apply our own Application Layer
+builder.Services.AddApplication();
 
-// App DI
-builder.Services.AddSingleton<ITodoService, TodoService>();
-builder.Services.AddSingleton<IAppHashIdService, AppHashIdService>();
-
-builder.Services.AddSingleton(provider => new MapperConfiguration(cfg =>
-{
-#pragma warning disable CS8604 // Possible null reference argument.
-    cfg.AddProfile(new AutoMappings(provider.GetService<IAppHashIdService>()));
-#pragma warning restore CS8604 // Possible null reference argument.
-}).CreateMapper());
+// Apply our own Infrastructure Layer
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Build App
-
 var app = builder.Build();
+
+await DatabaseSeeding.Run(app);
 
 var isDev = app.Environment.IsDevelopment();
 app.UseExceptionHandler(isDev ? "/error-dev" : "/error");
@@ -58,6 +51,8 @@ app.UseRouting();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseStaticFiles();
 
 app.UseEndpoints(endpoints =>
 {

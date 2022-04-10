@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI2022ArchitectureTest.Controllers
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class ErrorController : Controller
     {
-        [Route("/error-dev")]
+        [HttpGet("/error-dev")]
         public IActionResult HandleErrorDevelopment()
         {
             var exceptionHandlerFeature =
@@ -16,7 +17,7 @@ namespace WebAPI2022ArchitectureTest.Controllers
                 title: exceptionHandlerFeature.Error.Message);
         }
 
-        [Route("/error")]
+        [HttpGet("/error")]
         public IActionResult HandleError() => BadRequest();
     }
 }

@@ -1,23 +1,24 @@
 ﻿using Ardalis.ApiEndpoints;
 using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using WebAPI2022ArchitectureTest.Business.Interfaces;
+using WebAPI2022ArchitectureTest.Application.Common.Interfaces;
+using WebAPI2022ArchitectureTest.Application.Common.Models;
+using WebAPI2022ArchitectureTest.Application.TodoItems.Queries.GetAll;
 
 namespace WebAPI2022ArchitectureTest.Endpoints.Todo
 {
     [Route("api/todo")]
     public class List : EndpointBaseAsync
       .WithoutRequest
-      .WithResult<IEnumerable<ListResult>>
+      .WithResult<IEnumerable<TodoItemDTO>>
     {
-        private readonly ITodoService _todoServices;
-        private readonly IMapper _mapper;
+        private ISender _mediator;
 
-        public List(ITodoService todoServices, IMapper mapper)
+        public List(ISender mediator)
         {
-            _todoServices = todoServices;
-            _mapper = mapper;
+            _mediator = mediator;
         }
 
         [HttpGet("list")]
@@ -27,10 +28,16 @@ namespace WebAPI2022ArchitectureTest.Endpoints.Todo
             OperationId = "TodoItem.List",
             Tags = new[] { "TodoEndpoints" })
         ]
-        public override async Task<IEnumerable<ListResult>> HandleAsync(CancellationToken cancellationToken = default)
+        public override async Task<IEnumerable<TodoItemDTO>> HandleAsync(CancellationToken cancellationToken = default)
         {
-            var list = (await _todoServices.GetAllAsync()).Select(x => _mapper.Map<ListResult>(x));
-            return list;
+            var result = await _mediator.Send(new GetAllTodoItemQuery());
+
+            if (result.IsFailed) { 
+                HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                return new List<TodoItemDTO>();
+            }
+
+            return result.Value;
         }
     }
 }
