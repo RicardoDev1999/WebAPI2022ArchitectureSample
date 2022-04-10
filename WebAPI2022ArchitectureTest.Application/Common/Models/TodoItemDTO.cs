@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WebAPI2022ArchitectureTest.Application.Common.Mappings;
-using WebAPI2022ArchitectureTest.Domain.Enums;
-using WebAPI2022ArchitectureTest.Domain.Models;
+﻿using WebAPI2022ArchitectureTest.Domain.Enums;
 
 namespace WebAPI2022ArchitectureTest.Application.Common.Models
 {

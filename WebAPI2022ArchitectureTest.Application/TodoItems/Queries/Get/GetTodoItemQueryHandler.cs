@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using WebAPI2022ArchitectureTest.Application.Common.Errors;
 using WebAPI2022ArchitectureTest.Application.Common.Interfaces;
 using WebAPI2022ArchitectureTest.Application.Common.Models;
 
@@ -30,10 +31,9 @@ namespace WebAPI2022ArchitectureTest.Application.TodoItems.Queries.Get
                 .Where(x => x.Id == decodedId)
                 .ProjectTo<TodoItemDTO>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(cancellationToken);
-
-            // TODO USE IError Impl.
+        
             if (item == null)
-                return Result.Fail("Not Found");
+                return Result.Fail(new DbNotFound());
 
             return item.ToResult(); 
         }
